@@ -44,7 +44,7 @@ function register_blocks()
 // Brought in from lionheart
 add_filter('jwt_auth_iss', function () {
   // Default value is get_bloginfo( 'url' );
-  return 'http://wordpress-admin-url';
+  return site_url();
 });
 
 // Brought in from lionheart
@@ -75,76 +75,4 @@ function wpd_change_post_type_args($args, $post_type)
   return $args;
 }
 
-// Helper function to str_replace multi-dimensional array
-function str_replace_json($search, $replace, $subject)
-{
-  return json_decode(str_replace($search, $replace,  json_encode($subject)), true);
-}
 
-// Begin Yoast SEO Filters
-add_filter('wpseo_schema_webpage', 'webpage_filter');
-/**
- * Changes @type of Webpage Schema data.
- *
- * @param array $data Schema.org Webpage data array.
- *
- * @return array Schema.org Webpage data array.
- */
-function webpage_filter($data)
-{
-
-  $data['isPartOf']['@id'] = get_frontend_url();
-
-  return $data;
-}
-
-add_filter('wpseo_schema_website', 'website_filter');
-/**
- * Changes Website Schema data output, overwriting the name and alternateName.
- *
- * @param array $data Schema.org Website data array.
- *
- * @return array Schema.org Website data array.
- */
-function website_filter($data)
-{
-  $site_url = get_frontend_url();
-
-  $new_data = str_replace('http://wordpress-admin-url', $site_url, $data);
-  $new_data['publisher'] = str_replace('http://wordpress-admin-url', $site_url, $data['publisher']);
-  $new_data['potentialAction'][0]['target']['urlTemplate'] = $site_url . '?query={search_term_string}';
-  return $new_data;
-}
-
-add_filter('wpseo_schema_organization', 'change_organization_schema', 11, 2);
-
-/**
- * Add extra properties to the Yoast SEO Organization
- *
- * @param array             $data    The Schema Organization data.
- * @param Meta_Tags_Context $context Context value object.
- *
- * @return array $data The Schema Organization data.
- */
-function change_organization_schema($data, $context)
-{
-  $site_url = get_frontend_url();
-
-  $new_data = str_replace('http://wordpress-admin-url', $site_url, $data);
-
-  return $new_data;
-}
-
-add_filter('wpseo_schema_person', 'schema_change_person', 11, 2);
-/**
- * Changes the Yoast SEO Person schema.
- *
- * @param array             $data    The Schema Person data.
- * @param Meta_Tags_Context $context Context value object.
- *
- * @return array $data The Schema Person data.
- */
-function schema_change_person($data, $context)
-{
-  return NULL;
-}
