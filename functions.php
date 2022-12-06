@@ -11,6 +11,9 @@ function gutenberg_editor_assets()
 add_theme_support('post-thumbnails'); // enable featured images
 add_post_type_support('page', 'excerpt'); // enable page excerpts
 
+/*
+  Register whatever menus your project needs here. This is required in order for WP Admin > Appearance > Menus page to be visible for new Block themes such as this one. 
+*/
 add_action('init', 'register_menus');
 function register_menus()
 {
@@ -25,10 +28,17 @@ function register_menus()
   );
 }
 
+/*
+  Expand ACF field data returned in REST API; eg. image fields return full image data rather than just an ID. More info: https://www.advancedcustomfields.com/resources/wp-rest-api-integration/
+*/
 add_filter('acf/settings/rest_api_format', function () {
   return 'standard';
 });
 
+
+/*
+  Register your custom Gutenberg/ACF blocks here
+*/
 add_action('init', 'register_blocks');
 function register_blocks()
 {
@@ -41,13 +51,13 @@ function register_blocks()
   register_block_type(get_template_directory() . '/blocks/cta/block.json');
 }
 
-// Brought in from lionheart
+// Change the JWT token issuer:
 add_filter('jwt_auth_iss', function () {
   // Default value is get_bloginfo( 'url' );
   return site_url();
 });
 
-// Brought in from lionheart
+// Adds a custom REST API endpoint "/menu" which returns WP menu data
 add_action('rest_api_init', function () {
   register_rest_route('wp/v2', 'menu', array(
     'methods' => 'GET',
@@ -57,11 +67,23 @@ add_action('rest_api_init', function () {
 
 // create custom function to return nav menu
 function custom_wp_menu() {
-	// Replace your menu name, slug or ID carefully
-	return wp_get_nav_menu_items('Navbar');
+   // Replace your menu name, slug or ID carefully
+   return wp_get_nav_menu_items('Navbar');
 }
 
-// brought in from lionheart
+/*
+  Adjust this function based on your project's CPTs and your front-end's routes.
+  
+  This function allows us to prepend a custom subdirectory to a CPT's post slugs.
+  eg. an FAQ post's slug will become '/faqs/xyz-post-slug', rather than just 'xyz-post-slug'
+  You need to make the post slugs match whatever routing structure you created on the Next
+  front-end, so that when a content editor adds an internal link to an FAQ from within a blog 
+  post, for example, the link is correct and matches the front-end URL structure.
+  
+  Note: this only works for CPTs; to customize the default "posts" URL subdirectory (eg. prepend
+  'blog/' to post slugs), use the WP Admin > Settings > Permalinks > Custom Structure setting,
+  with a value such as "/blog/%postname%/"
+*/
 add_filter('register_post_type_args', 'wpd_change_post_type_args', 10, 2);
 function wpd_change_post_type_args($args, $post_type)
 {
