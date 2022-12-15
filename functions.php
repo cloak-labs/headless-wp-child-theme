@@ -98,3 +98,61 @@ function wpd_change_post_type_args($args, $post_type)
 }
 
 
+/*
+  Add ability for "editor" user role to edit WP Menus, but hide all other submenus under Appearance (for editors only) 
+*/
+function enable_menu_for_editors() {
+
+  $role_object = get_role( 'editor' );
+  if(!$role_object->has_cap('edit_theme_options')){
+    $role_object->add_cap( 'edit_theme_options' );
+  }
+
+  if (current_user_can('editor')) { // remove certain Appearance > Sub-pages
+      remove_submenu_page( 'themes.php', 'themes.php' ); // hide the theme selection submenu
+      remove_submenu_page( 'themes.php', 'widgets.php' ); // hide the widgets submenu
+
+      // special handling for removing "Customize" submenu (above method doesn't work due to its URL structure) --> snippet taken from https://stackoverflow.com/a/50912719/8297151
+      global $submenu;
+      if ( isset( $submenu[ 'themes.php' ] ) ) {
+          foreach ( $submenu[ 'themes.php' ] as $index => $menu_item ) {
+              foreach ($menu_item as $value) {
+                  if (strpos($value,'customize') !== false) {
+                      unset( $submenu[ 'themes.php' ][ $index ] );
+                  }
+              }
+          }
+      }
+  }
+}
+add_action('admin_head', 'enable_menu_for_editors');
+
+
+/*
+  Remove "Comments" from wp-admin sidebar for all roles.
+  Remove "Tools", "Dashboard", and "Yoast SEO" for non-admins
+*/
+function remove_admin_pages(){
+  remove_menu_page('edit-comments.php');
+
+  if (!current_user_can( 'administrator' )) { // remove certain pages for editors only
+    remove_menu_page('tools.php'); // remove "Tools"
+    remove_menu_page('index.php'); // remove "Dashboard"
+
+    // remove Yoast SEO
+    remove_menu_page('wpseo_dashboard');
+    remove_menu_page('wpseo_workouts');
+  }
+}
+add_action( 'admin_menu', 'remove_admin_pages' );
+
+/*
+  Function to remove various options in wp-admin top toolbar (not sidebar)
+  Currently used to remove the "Comments" and "View Posts" menu items
+*/
+function remove_admin_toolbar_options() {
+  global $wp_admin_bar;
+  $wp_admin_bar->remove_menu('comments');
+  $wp_admin_bar->remove_menu('archive');
+}
+add_action( 'wp_before_admin_bar_render', 'remove_admin_toolbar_options' );
