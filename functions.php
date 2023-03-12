@@ -3,8 +3,10 @@
 add_action('enqueue_block_editor_assets', 'gutenberg_editor_assets');
 function gutenberg_editor_assets()
 {
-  // Load the theme styles within Gutenberg.
+  // Load our custom styles for the Gutenberg editor:
   wp_enqueue_style('my-gutenberg-editor-styles', get_theme_file_uri('/blocks/styles.css'), array(), filemtime(), 'all');
+  
+  // Load our custom JS scripts that modify/strip the Gutenberg editor in opinionated ways:
   wp_enqueue_script('gutenberg-editor-js', get_theme_file_uri('/blocks/scripts.js'), array(), filemtime(), true);
 }
 
@@ -28,35 +30,7 @@ function register_menus()
   );
 }
 
-/*
-  Expand ACF field data returned in REST API; eg. image fields return full image data rather than just an ID. More info: https://www.advancedcustomfields.com/resources/wp-rest-api-integration/
-*/
-add_filter('acf/settings/rest_api_format', function () {
-  return 'standard';
-});
-
-
-/*
-  Register your custom Gutenberg/ACF blocks here
-*/
-add_action('init', 'register_blocks');
-function register_blocks()
-{
-  register_block_type(get_template_directory() . '/blocks/boxesBenefits/block.json');
-  register_block_type(get_template_directory() . '/blocks/postList/block.json');
-  register_block_type(get_template_directory() . '/blocks/pageHeader/block.json');
-  register_block_type(get_template_directory() . '/blocks/testimonial/block.json');
-  register_block_type(get_template_directory() . '/blocks/cardFeature/block.json');
-  register_block_type(get_template_directory() . '/blocks/faq/block.json');
-  register_block_type(get_template_directory() . '/blocks/cta/block.json');
-}
-
-// Change the JWT token issuer:
-add_filter('jwt_auth_iss', function () {
-  // Default value is get_bloginfo( 'url' );
-  return site_url();
-});
-
+// TODO: consider better solution for exposing menu in REST API and put in parent theme?
 // Adds a custom REST API endpoint "/menu" which returns WP menu data
 add_action('rest_api_init', function () {
   register_rest_route('wp/v2', 'menu', array(
@@ -70,6 +44,24 @@ function custom_wp_menu() {
    // Replace your menu name, slug or ID carefully
    return wp_get_nav_menu_items('Navbar');
 }
+
+
+/*
+  Register your custom Gutenberg/ACF blocks here
+*/
+add_action('init', 'register_blocks');
+function register_blocks()
+{
+  register_block_type(get_template_directory() . '/blocks/postList/block.json');
+  register_block_type(get_template_directory() . '/blocks/pageHeader/block.json');
+  register_block_type(get_template_directory() . '/blocks/testimonial/block.json');
+  register_block_type(get_template_directory() . '/blocks/cardFeature/block.json');
+  register_block_type(get_template_directory() . '/blocks/faq/block.json');
+  register_block_type(get_template_directory() . '/blocks/cta/block.json');
+}
+
+
+
 
 /*
   Adjust this function based on your project's CPTs and your front-end's routes.
@@ -96,36 +88,6 @@ function wpd_change_post_type_args($args, $post_type)
   }
   return $args;
 }
-
-
-/*
-  Add ability for "editor" user role to edit WP Menus, but hide all other submenus under Appearance (for editors only) 
-*/
-function enable_menu_for_editors() {
-
-  $role_object = get_role( 'editor' );
-  if(!$role_object->has_cap('edit_theme_options')){
-    $role_object->add_cap( 'edit_theme_options' );
-  }
-
-  if (current_user_can('editor')) { // remove certain Appearance > Sub-pages
-      remove_submenu_page( 'themes.php', 'themes.php' ); // hide the theme selection submenu
-      remove_submenu_page( 'themes.php', 'widgets.php' ); // hide the widgets submenu
-
-      // special handling for removing "Customize" submenu (above method doesn't work due to its URL structure) --> snippet taken from https://stackoverflow.com/a/50912719/8297151
-      global $submenu;
-      if ( isset( $submenu[ 'themes.php' ] ) ) {
-          foreach ( $submenu[ 'themes.php' ] as $index => $menu_item ) {
-              foreach ($menu_item as $value) {
-                  if (strpos($value,'customize') !== false) {
-                      unset( $submenu[ 'themes.php' ][ $index ] );
-                  }
-              }
-          }
-      }
-  }
-}
-add_action('admin_head', 'enable_menu_for_editors');
 
 
 /*
