@@ -3,6 +3,6 @@
   "description": "Dead simple theme that strips WordPress for use as a headless CMS.",
   "type": "wordpress-theme",
   "require": {
-      "composer/installers": "~1.0"
+      "composer/installers": "^2.2"
   }
 }
