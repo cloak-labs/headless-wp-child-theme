@@ -1,3 +1,5 @@
+This archived theme got revamped and re-launched as the CloakWP Inception Theme (https://github.com/cloak-labs/cloakwp-inception-theme). Visit that repo instead.
+
 # HeadlessWP Child Theme
 This is a [HeadlessWP](https://github.com/cloak-labs/headless-wp-theme) child theme that comes with many commonly used ACF Blocks + Field Groups, Gutenberg theme customizations, and more. Its goal is to speed up the initial scaffolding of your headless WordPress project.
 
